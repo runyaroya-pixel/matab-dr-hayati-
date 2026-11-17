@@ -1,0 +1,139 @@
+
+```html
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مطب دکتر حیاتی</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6fa;color:#25334a;font-family:Tahoma,Arial,sans-serif}
+header{background:linear-gradient(135deg,#183d59,#287b83);color:white;padding:28px 20px;border-radius:0 0 25px 25px}
+header h2{margin:0 0 10px}
+header p{margin:0;font-size:13px}
+main{padding:18px;max-width:600px;margin:auto}
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+button{border:0;border-radius:12px;padding:12px;background:#287b83;color:white;font-size:14px;font-family:inherit;cursor:pointer}
+.tabs button{flex:1}
+.card{background:white;padding:18px;border-radius:18px;margin-bottom:15px;box-shadow:0 3px 15px #152b3b0c}
+h3{margin-top:0;color:#24576a}
+input,select,textarea{width:100%;padding:13px;margin:7px 0 14px;border:1px solid #dce3e9;border-radius:10px;font-family:inherit;font-size:14px;background:white}
+label{font-size:13px;color:#526174}
+.primary{width:100%;background:#287b83}
+.item{padding:12px;border-bottom:1px solid #eee;font-size:13px;line-height:2}
+.hidden{display:none}
+.stats{display:flex;gap:10px}
+.stat{flex:1;background:#eaf4f3;padding:14px;border-radius:14px;text-align:center}
+.stat strong{display:block;font-size:22px;color:#287b83}
+.small{font-size:12px;color:#748391}
+.danger{background:#b64b4b;padding:7px 12px}
+</style>
+</head>
+<body>
+<header>
+<h2>مطب دکتر حیاتی</h2>
+<p>سامانه مدیریت پرونده و نوبت مراجعین</p>
+</header>
+<main>
+<div class="stats">
+<div class="stat"><strong id="pc">0</strong><span class="small">مراجعین</span></div>
+<div class="stat"><strong id="ac">0</strong><span class="small">جلسات ثبت‌شده</span></div>
+</div>
+<div class="tabs" style="margin-top:18px">
+<button onclick="show('home')">خانه</button>
+<button onclick="show('patient')">مراجع جدید</button>
+<button onclick="show('appointment')">ثبت جلسه</button>
+</div>
+<section id="home" class="card">
+<h3>خوش آمدید</h3>
+<p>مدیریت پرونده‌های مطب دکتر عمران حیاتی</p>
+<div id="lists"></div>
+</section>
+<section id="patient" class="card hidden">
+<h3>ثبت پرونده مراجع</h3>
+<form id="pf">
+<label>نام و نام خانوادگی</label>
+<input id="pname" required>
+<label>شماره تماس</label>
+<input id="phone" type="tel">
+<label>خدمت مورد نظر</label>
+<select id="service">
+<option>خدمات پوست</option>
+<option>کرایولیپولیز</option>
+<option>زیبایی</option>
+<option>سایر خدمات</option>
+</select>
+<label>توضیحات پرونده</label>
+<textarea id="note"></textarea>
+<button class="primary">ذخیره پرونده</button>
+</form>
+</section>
+<section id="appointment" class="card hidden">
+<h3>ثبت جلسه جدید</h3>
+<form id="af">
+<label>نام مراجع</label>
+<input id="aname" required>
+<label>نوع خدمت</label>
+<select id="aservice">
+<option>خدمات پوست</option>
+<option>کرایولیپولیز</option>
+<option>زیبایی</option>
+<option>سایر خدمات</option>
+</select>
+<label>تاریخ جلسه</label>
+<input id="adate" type="date" required>
+<label>توضیحات جلسه</label>
+<textarea id="adesc"></textarea>
+<button class="primary">ثبت جلسه</button>
+</form>
+</section>
+<section class="card">
+<h3>پرونده‌های مراجعین</h3>
+<div id="patients"></div>
+</section>
+<section class="card">
+<h3>جلسات ثبت‌شده</h3>
+<div id="appointments"></div>
+</section>
+</main>
+<script>
+let patients=JSON.parse(localStorage.getItem('patients')||'[]');
+let appointments=JSON.parse(localStorage.getItem('appointments')||'[]');
+function save(){
+localStorage.setItem('patients',JSON.stringify(patients));
+localStorage.setItem('appointments',JSON.stringify(appointments));
+render();
+}
+function show(id){
+['home','patient','appointment'].forEach(x=>document.getElementById(x).classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+}
+document.getElementById('pf').onsubmit=e=>{
+e.preventDefault();
+patients.push({name:pname.value,phone:phone.value,service:service.value,note:note.value});
+save();e.target.reset();show('home');
+};
+document.getElementById('af').onsubmit=e=>{
+e.preventDefault();
+appointments.push({name:aname.value,service:aservice.value,date:adate.value,desc:adesc.value});
+save();e.target.reset();show('home');
+};
+function render(){
+document.getElementById('pc').textContent=patients.length;
+document.getElementById('ac').textContent=appointments.length;
+document.getElementById('patients').innerHTML=patients.map((p,i)=>`<div class="item"><b>${escapeHTML(p.name)}</b><br>${escapeHTML(p.service)} | ${escapeHTML(p.phone)}<br>${escapeHTML(p.note)}<button class="danger" onclick="delP(${i})">حذف</button></div>`).join('')||'هنوز پرونده‌ای ثبت نشده است.';
+document.getElementById('appointments').innerHTML=appointments.map((a,i)=>`<div class="item"><b>${escapeHTML(a.name)}</b><br>${escapeHTML(a.service)} | ${escapeHTML(a.date)}<br>${escapeHTML(a.desc)}<button class="danger" onclick="delA(${i})">حذف</button></div>`).join('')||'هنوز جلسه‌ای ثبت نشده است.';
+}
+function escapeHTML(s){
+return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function delP(i){if(confirm('پرونده حذف شود؟')){patients.splice(i,1);save();}}
+function delA(i){if(confirm('جلسه حذف شود؟')){appointments.splice(i,1);save();}}
+render();
+</script>
+</body>
+</html>
+```
+
